@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2018 Kamil Sobolewski
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.sobolewskikamil.tuber</groupId>
+    <artifactId>tuber</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <graalvm.version>1.0.0-rc5</graalvm.version>
+        <junit-jupiter.version>5.3.1</junit-jupiter.version>
+        <jmh.version>1.21</jmh.version>
+        <log4j.version>2.11.1</log4j.version>
+        <mockito.version>2.23.0</mockito.version>
+    </properties>
+
+    <modules>
+        <module>tuber-language</module>
+        <module>tuber-launcher</module>
+        <module>tuber-integration-tests</module>
+        <module>tuber-performance-tests</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.oracle.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oracle.truffle</groupId>
+                <artifactId>truffle-dsl-processor</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.graalvm</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>26.0-jre</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.8.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-runtime</artifactId>
+                <version>4.7.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit-jupiter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit-jupiter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit-jupiter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-core</artifactId>
+                <version>${jmh.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
+                <version>${jmh.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.11.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+                <!-- Uncomment for GraalVM -->
+                <!--<configuration>
+                    <argLine>-XX:-UseJVMCIClassLoader</argLine>
+                </configuration>-->
+            </plugin>
+
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.4.3</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>0.7</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>com.github.sobolewskikamil.tuber.language*</param>
+                    </targetClasses>
+                    <excludedClasses>
+                        <class>com.github.sobolewskikamil.tuber.language*Gen</class>
+                        <class>com.github.sobolewskikamil.tuber.language*Factory</class>
+                        <class>com.github.sobolewskikamil.tuber.language*Wrapper</class>
+                        <class>com.github.sobolewskikamil.tuber.language.grammar*</class>
+                    </excludedClasses>
+                    <targetTests>
+                        <param>com.github.sobolewskikamil.tuber.language*</param>
+                    </targetTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

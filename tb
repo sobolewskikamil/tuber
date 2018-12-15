@@ -1,0 +1,92 @@
+# Copyright (c) 2018 Kamil Sobolewski
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+#!/usr/bin/env bash
+
+TUBER_VERSION="1.0-SNAPSHOT"
+GRAALVM_VERSION="1.0.0-rc5"
+
+MAIN_CLASS="com.github.sobolewskikamil.tuber.launcher.TuberLauncher"
+SCRIPT_HOME="$(cd "$(dirname "$0")" && pwd -P)"
+
+LANGUAGE_PATH="$SCRIPT_HOME/tuber-language/target/tuber-language-$TUBER_VERSION.jar"
+LAUNCHER_PATH="$SCRIPT_HOME/tuber-launcher/target/tuber-launcher-$TUBER_VERSION.jar"
+
+# Check if JAVA_HOME is specified
+if [[ "$JAVA_HOME" != "" ]]; then
+    # Check if GraalVM is used
+    USER_GRAALVM_VERSION=$(grep "GRAALVM_VERSION" "$JAVA_HOME"/release)
+    if [[ "$USER_GRAALVM_VERSION" != "" ]]; then
+        # Check if correct version of GraalVM is used
+        USER_GRAALVM_VERSION=$(echo "$USER_GRAALVM_VERSION" | awk 'BEGIN {FS="="} {print $2}')
+        if [[ "$USER_GRAALVM_VERSION" != "$GRAALVM_VERSION" ]]; then
+            echo "Wrong version of GraalVM in \$JAVA_HOME. Expected: $GRAALVM_VERSION, found $USER_GRAALVM_VERSION"
+            exit
+        fi
+    fi
+
+    JAVACMD=${JAVACMD:=${JAVA_HOME}/bin/java}
+
+    # Check if language path is correct
+    if [[ ! -f ${LANGUAGE_PATH} ]]; then
+        echo "Could not find language on $LANGUAGE_PATH."
+        exit
+    fi
+
+    # Check if launcher path is correct
+    if [[ ! -f ${LAUNCHER_PATH} ]]; then
+        echo "Could not find launcher on $LAUNCHER_PATH."
+        exit
+    fi
+else
+    echo "JAVA_HOME is not set"
+    exit
+fi
+
+if [[ "$USER_GRAALVM_VERSION" != "" ]]; then
+    PROGRAM_ARGS=""
+    for opt in "$@"
+    do
+      PROGRAM_ARGS="$PROGRAM_ARGS $opt" ;
+    done
+
+    ${JAVACMD} -Dtruffle.class.path.append=${LANGUAGE_PATH} -cp ${LAUNCHER_PATH} ${MAIN_CLASS} ${PROGRAM_ARGS}
+else
+    echo "Warning: Could not find GraalVM on $JAVA_HOME. Running on JDK without support for compilation."
+    echo
+
+    PROGRAM_ARGS=""
+    for opt in "$@"
+    do
+      PROGRAM_ARGS="$PROGRAM_ARGS $opt" ;
+    done
+
+    # Check if maven cache exists
+    if [[ ! -d $HOME/.m2 ]]; then
+        echo "Could not find mvn cache at $HOME/.m2"
+        exit
+    fi
+
+    GRAAL_SDK_PATH="$HOME/.m2/repository/org/graalvm/graal-sdk/$GRAALVM_VERSION/graal-sdk-$GRAALVM_VERSION.jar"
+    TRUFFLE_API_PATH="$HOME/.m2/repository/com/oracle/truffle/truffle-api/$GRAALVM_VERSION/truffle-api-$GRAALVM_VERSION.jar"
+    ANTLR_PATH="$HOME/.m2/repository/org/antlr/antlr4-runtime/4.7.1/antlr4-runtime-4.7.1.jar"
+
+    ${JAVACMD} -cp ${GRAAL_SDK_PATH}:${LAUNCHER_PATH}:${LANGUAGE_PATH}:${TRUFFLE_API_PATH}:${ANTLR_PATH} ${MAIN_CLASS} ${PROGRAM_ARGS}
+fi
